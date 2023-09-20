@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: postgresql-backup-cron-job
+spec:
+#Cron Time is set according to server time, ensure server time zone and set accordingly.
+  schedule: "*/5 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: postgresql-backup-job-pod
+            image: 448010165118.dkr.ecr.us-east-2.amazonaws.com/sangramrepo:latest
+            env:
+              - name: S3_BUCKET
+                value: "s3://postgres-backup-113345/dev-pro-cluster/"
+              - name: PG_PASS
+                value: "postgres"
+              - name: AWS_ACCESS_KEY_ID
+                value: "AKIAWQT34TN7ANS47H44"
+              - name: AWS_SECRET_ACCESS_KEY
+                value: "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"
+              - name: AWS_DEFAULT_REGION
+                value: "ap-south-1"
+              - name: APP_SLACK_WEBHOOK
+                value: "https://hooks.slack.com/services/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"
+            imagePullPolicy: Always
+            args:
+            - /bin/bash
+            - -c
+            - cd /home/root; ls; bash postgres-backup.sh;
+          restartPolicy: OnFailure
+      backoffLimit: 3
